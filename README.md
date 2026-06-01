@@ -4,7 +4,7 @@ This is the backend service for processing operational machine data from various
 
 ## Architecture & Design Decisions
 1. **Pydantic Validation**: Used heavily at the ingestion boundary to ensure strict compliance with expected schemas.
-2. **PostgreSQL Persistence**: Replaced SQLite with PostgreSQL for production readiness, maintaining raw payload traceability in `IngestedPayload` and normalized data in `NormalizedEvent`.
+2. **Canonical Normalization**: The `NormalizedEvent` table acts as a strict internal boundary. Regardless of which vendor sends the data, it is parsed and stored into this single canonical schema. This completely decouples our downstream business logic (state derivation) from the messy, inconsistent vendor payloads.
 3. **Idempotency**: Event UUIDs act as primary keys in `NormalizedEvent`. Utilizing `db.merge()` ensures safe re-ingestion of identical batches.
 4. **Deterministic State Derivation**: The background task derives states cleanly from `NormalizedEvent` records, mapping raw data strictly to defined Enums (`SeverityLevel`, `DerivedStatus`). No ML or non-deterministic approaches are utilized.
 
