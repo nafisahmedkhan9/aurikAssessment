@@ -9,6 +9,7 @@ This is the backend service for processing operational machine data from various
 4. **Deterministic State Derivation**: The background task derives states cleanly from `NormalizedEvent` records, mapping raw data strictly to defined Enums (`SeverityLevel`, `DerivedStatus`). No ML or non-deterministic approaches are utilized.
 
 ## Assumptions & Trade-Offs
+- **Deterministic Attention Logic:** We assume that any operational event mapped to a severity level of `3 (MODERATE)` or higher automatically flags the machine as requiring attention (`needs_attention = True`). This keeps the derivation logic fully deterministic and explainable without relying on black-box ML.
 - **Idempotency over strict chronological ordering:** `db.merge()` is used to gracefully update normalized events on duplicate ingestion, assuming that vendors might replay data.
 - **Background Tasks over Message Queues:** In a massive scale system, Kafka or RabbitMQ would be used for ingestion. For this assessment, FastAPI's built-in `BackgroundTasks` was chosen to keep the architecture simple, clean, and easily runnable without heavy infrastructure.
 - **Synchronous SQLAlchemy over AsyncPG:** SQLAlchemy is used synchronously. While `asyncpg` offers better throughput, synchronous is easier to reason about for deterministic rules and is entirely sufficient given the background task offloading.
