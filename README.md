@@ -3,6 +3,47 @@
 This is the backend service for processing operational machine data from various vendors. It handles data ingestion, normalization, deterministic state derivation, and exposes operational API views.
 
 ## Architecture & Design Decisions
+
+```mermaid
+graph TD
+    subgraph Vendors
+        V1[PulseForge]
+        V2[ThermexWatch]
+        V3[MaintaFlow]
+    end
+
+    subgraph API Layer [FastAPI Application]
+        I[Ingestion Router /api/v1/ingest]
+        O[Output Router /api/v1/output]
+    end
+
+    subgraph Background Processing [Background Tasks]
+        N[Normalization Engine]
+        D[State Derivation Logic]
+    end
+
+    subgraph Persistence [PostgreSQL Database]
+        IP[(IngestedPayload)]
+        NE[(NormalizedEvent)]
+        MS[(MachineState)]
+    end
+
+    %% Flow
+    V1 -. JSON .-> I
+    V2 -. JSON .-> I
+    V3 -. JSON .-> I
+
+    I -- Save Raw --> IP
+    I -- Dispatch Task --> N
+    
+    N -- Upsert Normalized --> NE
+    N -- Trigger Update --> D
+    D -- Upsert State --> MS
+
+    O -- Query Status --> IP
+    O -- Query State --> MS
+```
+
 1. **Pydantic Validation**: Used heavily at the ingestion boundary to ensure strict compliance with expected schemas.
 2. **Canonical Normalization**: The `NormalizedEvent` table acts as a strict internal boundary. Regardless of which vendor sends the data, it is parsed and stored into this single canonical schema. This completely decouples our downstream business logic (state derivation) from the messy, inconsistent vendor payloads.
 3. **Idempotency**: Event UUIDs act as primary keys in `NormalizedEvent`. Utilizing `db.merge()` ensures safe re-ingestion of identical batches.
