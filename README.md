@@ -79,3 +79,13 @@ Run `pytest` to execute unit tests inside the `/backend` directory:
 ```bash
 pytest
 ```
+
+## AI Usage Disclosure
+In accordance with the assessment guidelines, I utilized **Anti-Gravity + AI Agents** to assist with rapidly parsing the requirements, generating boilerplate code, and formatting the documentation. 
+
+However, the core architectural choices and system design decisions were entirely my own. Specifically, I made the decisions to:
+1. Use **Pydantic** to enforce strict validation boundaries at the API layer.
+2. Split the persistence model into **two separate tables**: one for immutable historical data (`NormalizedEvent`) and one for the current, overwritten snapshot (`MachineState`).
+3. Select **PostgreSQL** as the database to ensure production-readiness.
+4. Build **three distinct API endpoints** for the three vendors rather than a single massive, fragile endpoint.
+5. Define the **deterministic logic** that maps vendor severities to a strict internal Enum to calculate if a machine `needs_attention`.
