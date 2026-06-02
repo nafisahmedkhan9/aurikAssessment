@@ -54,6 +54,32 @@ def get_machine_state(machine_id: str, db: Session = Depends(get_db)):
         source_event_refs=source_event_refs
     )
 
+@router.get("/machines/{machine_id}/events", response_model=list[schemas.NormalizedEventResponse])
+def get_machine_events(machine_id: str, limit: int = 10, db: Session = Depends(get_db)):
+    """Get the detailed historical normalized events (sensor readings, etc) for a single machine."""
+    from app.models.domain import NormalizedEvent
+    events = db.query(NormalizedEvent)\
+        .filter(NormalizedEvent.machine_id == machine_id)\
+        .order_by(NormalizedEvent.event_time.desc())\
+        .limit(limit)\
+        .all()
+        
+    if not events:
+        raise HTTPException(status_code=404, detail="No events found for this machine")
+        
+    return [
+        schemas.NormalizedEventResponse(
+            event_id=e.event_id,
+            machine_id=e.machine_id,
+            event_time=e.event_time,
+            vendor=e.vendor,
+            temperature_c=e.temperature_c,
+            vibration_mm_s=e.vibration_mm_s,
+            normalized_severity=e.normalized_severity.name if e.normalized_severity else None,
+            inspection_note=e.inspection_note
+        ) for e in events
+    ]
+
 @router.get("/plants/{plant_id}/summary", response_model=schemas.PlantSummaryResponse)
 def get_plant_summary(plant_id: str, db: Session = Depends(get_db)):
     """Get an aggregated summary of all machines in a specific plant."""

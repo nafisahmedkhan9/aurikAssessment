@@ -82,6 +82,16 @@ class MachineStateResponse(BaseModel):
     latest_relevant_event_time: Optional[datetime]
     source_event_refs: List[str]
 
+class NormalizedEventResponse(BaseModel):
+    event_id: str
+    machine_id: str
+    event_time: datetime
+    vendor: str
+    temperature_c: Optional[float] = None
+    vibration_mm_s: Optional[float] = None
+    normalized_severity: Optional[str] = None
+    inspection_note: Optional[str] = None
+
 class LineSummary(BaseModel):
     line_id: str
     machines_needing_attention: int

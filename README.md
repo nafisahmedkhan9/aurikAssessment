@@ -60,6 +60,7 @@ graph TD
 2. **Dedicated Message Broker:** Transitioning from `BackgroundTasks` to Celery or an external queue (e.g., SQS/Kafka) to ensure payloads aren't lost if the FastAPI pod crashes before processing is complete.
 3. **Database Migrations:** Implementing `Alembic` to manage database schema evolutions over time instead of relying on `Base.metadata.create_all()`.
 4. **Caching Layer:** Adding Redis to cache the Plant Summary endpoints if the database grows large.
+5. **Multi-Signal State Derivation:** The `source_event_refs` in the `MachineState` table is intentionally designed as a JSON array. While the current rules rely on a single event, this array future-proofs the schema to support complex derivation rules (e.g., flagging a machine as CRITICAL only if both PulseForge and MaintaFlow report severe anomalies within the same hour) while maintaining perfect traceability.
 
 ## Running Locally via Docker Compose
 To run both the application and the database natively through Docker:
